@@ -10,7 +10,7 @@ from utils import split_data, hypergraph_to_cliques, get_test_edges
 from models.hyper_gnn import HyperGNNConv
 
 EPOCHS = 500
-LR = 0.001
+LR = 0.0001
 
 class HyperGNN(nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim, ef_dim=0, aggrs=('mean', 'mean')):
@@ -50,6 +50,17 @@ class HyperGNN(nn.Module):
     t_auc    0.001126
     t_ap     0.001049
 
+(128,32)x2 with norm and cat
+    v_auc    0.931238
+    v_ap     0.940469
+    t_auc    0.933183
+    t_ap     0.942633
+    dtype: float64
+    v_auc    0.002772
+    v_ap     0.002705
+    t_auc    0.003122
+    t_ap     0.002459
+
 (512,128)x2
     v_auc    0.939383
     v_ap     0.946020
@@ -61,6 +72,27 @@ class HyperGNN(nn.Module):
     t_auc    0.001548
     t_ap     0.001275
 
+(512,128)x2 with norm and cat
+    v_auc    0.935818
+    v_ap     0.936403
+    t_auc    0.936930
+    t_ap     0.938894
+    dtype: float64
+    v_auc    0.004201
+    v_ap     0.004778
+    t_auc    0.002726
+    t_ap     0.002997
+
+(512,128)x2 with norm and cat lr=0.0001
+    v_auc    0.971700
+    v_ap     0.977121
+    t_auc    0.973581
+    t_ap     0.978281
+    dtype: float64
+    v_auc    0.000723
+    v_ap     0.000606
+    t_auc    0.000870
+    t_ap     0.000802
 
 SAGE
 (128,32)x2
@@ -74,7 +106,7 @@ SAGE
     t_auc    0.001871
     t_ap     0.001417
 
-(512,128)
+(512,128)x2
     v_auc    0.954407
     v_ap     0.959783
     t_auc    0.945632
@@ -84,6 +116,17 @@ SAGE
     v_ap     0.000716
     t_auc    0.001332
     t_ap     0.001110
+
+(512,128)x2 lr=0.0001
+    v_auc    0.963047
+    v_ap     0.970630
+    t_auc    0.960025
+    t_ap     0.968130
+    dtype: float64
+    v_auc    0.001080
+    v_ap     0.000845
+    t_auc    0.001027
+    t_ap     0.000856
 '''
 
 data = to_hypergraph()
@@ -91,11 +134,11 @@ data = to_hypergraph()
 def test():
     tr,va,te = split_data(data)
 
-    #model = HyperGNN(tr.x.size(1), 512, 128)
+    #model = HyperGNN(tr.x.size(1), 512, 128)#, 32)
     model = GraphSAGE(tr.x.size(1), 512, 2, 128)
 
     opt = Adam(model.parameters(), lr=LR)
-    tr_edges = hypergraph_to_cliques(tr.h_edge_index)
+    tr_edges = get_test_edges(tr.h_edge_index, tr.h_edge_index)
     va_edges = get_test_edges(va.h_edge_index, tr.h_edge_index)
     te_edges = get_test_edges(te.h_edge_index, tr.h_edge_index)
 

@@ -26,7 +26,7 @@ class HyperGNNConv(nn.Module):
             self.node_net_feats = in_dim + ef_dim
             self.use_edge_net = False
 
-        self.node_net = nn.Linear(self.node_net_feats, out_dim)
+        self.node_net = nn.Linear(in_dim + self.node_net_feats, out_dim)
         self.node_aggr = MP(node_aggr)
 
     def forward(self, x, h_edge_index, h_edge_feats=None):
@@ -56,4 +56,8 @@ class HyperGNNConv(nn.Module):
             h_edge_index
         )[:x.size(0)]
 
-        return self.node_net(node_feats)
+        out = torch.cat([x, node_feats], dim=1)
+        out = self.node_net(out)
+        norm = out.norm(dim=1, keepdim=True)
+
+        return out / norm
